@@ -7,6 +7,6 @@
 
 #pragma link C++ class MCApplication+;
 #pragma link C++ class MCStack+;
-#pragma link C++ class Particle+;
+#pragma link C++ class SensitiveDetector+;
 
 #endif

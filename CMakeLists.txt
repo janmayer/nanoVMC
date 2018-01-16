@@ -12,16 +12,15 @@ include_directories(
         ${VMC_INCLUDE_DIR}
         ${PROJECT_SOURCE_DIR}/src)
 
+file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cxx)
+file(GLOB HEADERS ${PROJECT_SOURCE_DIR}/src/*.h)
+list(REMOVE_ITEM HEADERS ${PROJECT_SOURCE_DIR}/src/LinkDef.h)
+
 root_generate_dictionary(
         ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}
         no_rootmap
-        ${PROJECT_SOURCE_DIR}/src/MCApplication.h
-        ${PROJECT_SOURCE_DIR}/src/MCStack.h
-        ${PROJECT_SOURCE_DIR}/src/Particle.h
+        ${HEADERS}
         LINKDEF ${PROJECT_SOURCE_DIR}/src/LinkDef.h)
-
-file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cxx)
-file(GLOB HEADERS ${PROJECT_SOURCE_DIR}/src/*.h)
 
 add_library(${PROJECT_NAME} ${SOURCES} ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}_dict.cxx ${HEADERS})
 target_link_libraries(${PROJECT_NAME} ${VMC_LIBRARIES})

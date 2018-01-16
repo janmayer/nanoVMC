@@ -1,9 +1,9 @@
 #include "MCStack.h"
-#include "TObjArray.h"
+#include "TClonesArray.h"
 #include "TParticle.h"
 
 MCStack::MCStack(Int_t size)
-    : fParticles(new TObjArray(size))
+    : fParticles(new TClonesArray("TParticle", size))
     , fCurrentTrack(-1)
     , fNPrimary(0)
 {
@@ -67,22 +67,17 @@ void MCStack::PushTrack(Int_t toBeDone,
     const Int_t kFirstDaughter = -1;
     const Int_t kLastDaughter  = -1;
 
-    auto particleDef =
-        new TParticle(pdg, is, parent, -1, kFirstDaughter, kLastDaughter, px, py, pz, e, vx, vy, vz, tof);
+    TClonesArray& particlesRef = *fParticles;
+    Int_t trackId              = GetNtrack();
+    auto particle              = new (particlesRef[trackId])
+        TParticle(pdg, is, parent, trackId, kFirstDaughter, kLastDaughter, px, py, pz, e, vx, vy, vz, tof);
 
-    particleDef->SetPolarisation(polx, poly, polz);
-    particleDef->SetWeight(static_cast<Float_t>(weight));
-    particleDef->SetUniqueID(mech);
+    particle->SetPolarisation(polx, poly, polz);
+    particle->SetWeight(static_cast<Float_t>(weight));
+    particle->SetUniqueID(mech);
 
-    Particle* mother = nullptr;
-    if (parent >= 0)
-        mother = GetParticle(parent);
-    else
+    if (parent < 0)
         fNPrimary++;
-
-    auto particle = new Particle(GetNtrack(), particleDef, mother);
-
-    fParticles->Add(particle);
 
     if (toBeDone)
         fStack.push(particle);
@@ -100,16 +95,16 @@ TParticle* MCStack::PopNextTrack(Int_t& itrack)
     if (fStack.empty())
         return nullptr;
 
-    Particle* particle = fStack.top();
+    TParticle* particle = fStack.top();
     fStack.pop();
 
     if (!particle)
         return nullptr;
 
-    itrack        = particle->GetID();
-    fCurrentTrack = itrack;
+    fCurrentTrack = particle->GetSecondMother();
+    itrack        = fCurrentTrack;
 
-    return particle->GetParticle();
+    return particle;
 }
 
 TParticle* MCStack::PopPrimaryForTracking(Int_t i)
@@ -119,11 +114,9 @@ TParticle* MCStack::PopPrimaryForTracking(Int_t i)
     /// \param i  The index of primary particle to be popped
 
     if (i < 0 || i >= fNPrimary)
-    {
         Fatal("GetPrimaryForTracking", "Index out of range");
-    }
 
-    return ((Particle*)fParticles->At(i))->GetParticle();
+    return (TParticle*)fParticles->At(i);
 }
 
 void MCStack::SetCurrentTrack(Int_t itrack) { fCurrentTrack = itrack; }
@@ -134,42 +127,37 @@ Int_t MCStack::GetNprimary() const { return fNPrimary; }
 
 TParticle* MCStack::GetCurrentTrack() const
 {
-    Particle* current = GetParticle(fCurrentTrack);
+    TParticle* current = GetParticle(fCurrentTrack);
 
-    if (current)
-    {
-        return current->GetParticle();
-    }
-    else
-    {
-        return nullptr;
-    }
+    if (!current)
+        Warning("GetCurrentTrack", "Current track not found in the stack");
+
+    return current;
 }
 
 Int_t MCStack::GetCurrentTrackNumber() const { return fCurrentTrack; }
 
 Int_t MCStack::GetCurrentParentTrackNumber() const
 {
-    Particle* current = GetParticle(fCurrentTrack);
+    TParticle* current = GetCurrentTrack();
 
-    if (!current)
-    {
+    if (current)
+        return current->GetFirstMother();
+    else
         return -1;
-    }
-    Particle* mother = current->GetMother();
-
-    if (!mother)
-    {
-        return -1;
-    }
-    return mother->GetID();
 }
 
-Particle* MCStack::GetParticle(Int_t id) const
+TParticle* MCStack::GetParticle(Int_t id) const
 {
     if (id < 0 || id >= fParticles->GetEntriesFast())
-    {
         Fatal("GetParticle", "Index out of range");
-    }
-    return (Particle*)fParticles->At(id);
+
+    return (TParticle*)fParticles->At(id);
+}
+
+void MCStack::Reset()
+{
+    fCurrentTrack = -1;
+    fNPrimary     = 0;
+    fParticles->Clear();
 }

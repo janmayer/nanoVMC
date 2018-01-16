@@ -1,14 +1,18 @@
 #ifndef TGEOTET_VMCDEMO_MCAPPLICATION_H
 #define TGEOTET_VMCDEMO_MCAPPLICATION_H
 
-#include <TVirtualMCApplication.h>
+#include "SensitiveDetector.h"
+#include "TH1D.h"
+#include "TVirtualMCApplication.h"
 
-class TVirtualMCStack;
+class MCStack;
 
 class MCApplication : public TVirtualMCApplication
 {
   public:
-    MCApplication();
+    explicit MCApplication(std::string geoFileName         = "geo.root",
+                           std::string outFileName         = "out.root",
+                           std::string sensitiveVolumeName = "SV");
     ~MCApplication() override;
 
     static inline MCApplication* Instance()
@@ -35,7 +39,11 @@ class MCApplication : public TVirtualMCApplication
     void FinishEvent() override;
 
   private:
-    TVirtualMCStack* fStack;
+    MCStack* fStack;
+    SensitiveDetector fSensitiveDetector;
+    std::string fGeoFileName;
+    std::string fOutFileName;
+    TH1D fHist;
 
     ClassDefOverride(MCApplication, 1)
 };

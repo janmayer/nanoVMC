@@ -52,6 +52,7 @@ class MCApplication : public TVirtualMCApplication
     const std::function<void(MCStack*)> fGenerator;
     std::vector<SensitiveDetector> fSensitiveDetectors;
     std::vector<TH1D> fHistograms;
+    int fEvent;
 
     ClassDefOverride(MCApplication, 1)
 };

@@ -15,6 +15,7 @@ MCApplication::MCApplication(std::string geoFileName,
     , fGeoFileName(std::move(geoFileName))
     , fOutFileName(std::move(outFileName))
     , fGenerator(std::move(generator))
+    , fEvent(0)
 {
     fSensitiveDetectors.reserve(sensitiveVolumeNames.size());
     fHistograms.reserve(sensitiveVolumeNames.size());
@@ -142,4 +143,10 @@ void MCApplication::FinishEvent()
         (*i.first).EndOfEvent();
     }
     fStack->Reset();
+
+    ++fEvent;
+    if (fEvent % 10000 == 0)
+    {
+        std::cout << fEvent << std::endl;
+    }
 }

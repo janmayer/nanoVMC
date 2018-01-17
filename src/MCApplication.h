@@ -7,16 +7,19 @@
 #include "TLorentzVector.h"
 #include "TVirtualMCApplication.h"
 #include <functional>
-
+#include <string>
+#include <vector>
 
 class MCApplication : public TVirtualMCApplication
 {
   public:
-    explicit MCApplication(std::string geoFileName                 = "geo.root",
-                           std::string outFileName                 = "out.root",
-                           std::function<void(MCStack*)> generator = [](MCStack* stack) {
-                               stack->PushBasicPrimary(22, TLorentzVector(5.e-3, 0., 0., 5.e-3));
-                           });
+    explicit MCApplication(std::string geoFileName = "geo.root",
+                           std::string outFileName = "out.root",
+                           std::function<void(MCStack*)> generator =
+                               [](MCStack* stack) {
+                                   stack->PushBasicPrimary(22, TLorentzVector(5.e-3, 0., 0., 5.e-3));
+                               },
+                           const std::vector<std::string>& sensitiveVolumeNames = {"SV"});
     ~MCApplication() override;
 
     static inline MCApplication* Instance()
@@ -44,11 +47,11 @@ class MCApplication : public TVirtualMCApplication
 
   private:
     MCStack* fStack;
-    SensitiveDetector fSensitiveDetector;
     const std::string fGeoFileName;
     const std::string fOutFileName;
     const std::function<void(MCStack*)> fGenerator;
-    TH1D fHist;
+    std::vector<SensitiveDetector> fSensitiveDetectors;
+    std::vector<TH1D> fHistograms;
 
     ClassDefOverride(MCApplication, 1)
 };

@@ -1,5 +1,4 @@
 #include "MCApplication.h"
-#include "MCStack.h"
 #include "TFile.h"
 #include "TGeoManager.h"
 #include "TInterpreter.h"
@@ -8,14 +7,22 @@
 #include <iostream>
 
 
-MCApplication::MCApplication(std::string geoFileName, std::string outFileName, std::function<void(MCStack*)> generator)
+MCApplication::MCApplication(std::string geoFileName,
+                             std::string outFileName,
+                             std::function<void(MCStack*)> generator,
+                             const std::vector<std::string>& sensitiveVolumeNames)
     : fStack(new MCStack(100))
-    , fSensitiveDetector("SV")
     , fGeoFileName(std::move(geoFileName))
     , fOutFileName(std::move(outFileName))
     , fGenerator(std::move(generator))
-    , fHist("hist", "hist", 10000, 0, 10000)
 {
+    fSensitiveDetectors.reserve(sensitiveVolumeNames.size());
+    fHistograms.reserve(sensitiveVolumeNames.size());
+    for (const auto& sensitiveVolumeName : sensitiveVolumeNames)
+    {
+        fSensitiveDetectors.emplace_back(sensitiveVolumeName);
+        fHistograms.emplace_back(sensitiveVolumeName.c_str(), sensitiveVolumeName.c_str(), 10000, 0, 10000);
+    }
 }
 
 MCApplication::~MCApplication() { delete fStack; }
@@ -23,10 +30,6 @@ MCApplication::~MCApplication() { delete fStack; }
 void MCApplication::InitMC(const char* setup)
 {
     std::cout << "MCApplication::InitMC" << std::endl;
-    /// Initialize MC.
-    /// The selection of the concrete MC is done in the macro.
-    /// \param setup The name of the configuration macro
-
     if (TString(setup) != "")
     {
         gROOT->LoadMacro(setup);
@@ -53,8 +56,10 @@ void MCApplication::FinishRun()
 {
     std::cout << "MCApplication::FinishRun" << std::endl;
     TFile tfile(fOutFileName.c_str(), "RECREATE");
-    // fHist->SetD
-    fHist.Write();
+    for (auto& hist : fHistograms)
+    {
+        hist.Write();
+    }
     tfile.Write();
     tfile.Close();
 }
@@ -81,7 +86,10 @@ void MCApplication::ConstructGeometry()
 void MCApplication::InitGeometry()
 {
     std::cout << "MCApplication::InitGeometry" << std::endl;
-    fSensitiveDetector.Initialize();
+    for (auto& sd : fSensitiveDetectors)
+    {
+        sd.Initialize();
+    }
 }
 
 void MCApplication::GeneratePrimaries()
@@ -105,7 +113,13 @@ void MCApplication::PreTrack()
     // std::cout << "MCApplication::PreTrack" << std::endl;
 }
 
-void MCApplication::Stepping() { fSensitiveDetector.ProcessHits(); }
+void MCApplication::Stepping()
+{
+    for (auto& sd : fSensitiveDetectors)
+    {
+        sd.ProcessHits();
+    }
+}
 
 void MCApplication::PostTrack()
 {
@@ -120,8 +134,12 @@ void MCApplication::FinishPrimary()
 void MCApplication::FinishEvent()
 {
     // std::cout << "MCApplication::FinishEvent" << std::endl;
-    fHist.Fill(fSensitiveDetector.GetEdep() * 1e+06); // GeV -> keV
-    // fSensitiveDetector.Print();
-    fSensitiveDetector.EndOfEvent();
+    for (auto i = std::make_pair(fSensitiveDetectors.begin(), fHistograms.begin());
+         i.first != fSensitiveDetectors.end() && i.second != fHistograms.end();
+         ++i.first, ++i.second)
+    {
+        (*i.second).Fill((*i.first).GetEdep() * 1e+06); // GeV -> keV
+        (*i.first).EndOfEvent();
+    }
     fStack->Reset();
 }

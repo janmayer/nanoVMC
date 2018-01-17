@@ -1,5 +1,5 @@
-#ifndef TGEOTET_VMCDEMO_MCSTACK_H
-#define TGEOTET_VMCDEMO_MCSTACK_H
+#ifndef NANOVMC_MCSTACK_H
+#define NANOVMC_MCSTACK_H
 
 #include "TLorentzVector.h"
 #include "TVirtualMCStack.h"
@@ -57,4 +57,4 @@ class MCStack : public TVirtualMCStack
     ClassDefOverride(MCStack, 1)
 };
 
-#endif // TGEOTET_VMCDEMO_MCSTACK_H
+#endif // NANOVMC_MCSTACK_H

@@ -1,5 +1,5 @@
-#ifndef TGEOTET_VMCDEMO_MCAPPLICATION_H
-#define TGEOTET_VMCDEMO_MCAPPLICATION_H
+#ifndef NANOVMC_MCAPPLICATION_H
+#define NANOVMC_MCAPPLICATION_H
 
 #include "MCStack.h"
 #include "SensitiveDetector.h"
@@ -56,4 +56,4 @@ class MCApplication : public TVirtualMCApplication
     ClassDefOverride(MCApplication, 1)
 };
 
-#endif // TGEOTET_VMCDEMO_MCAPPLICATION_H
+#endif // NANOVMC_MCAPPLICATION_H

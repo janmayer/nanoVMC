@@ -1,18 +1,22 @@
 #ifndef TGEOTET_VMCDEMO_MCAPPLICATION_H
 #define TGEOTET_VMCDEMO_MCAPPLICATION_H
 
+#include "MCStack.h"
 #include "SensitiveDetector.h"
 #include "TH1D.h"
+#include "TLorentzVector.h"
 #include "TVirtualMCApplication.h"
+#include <functional>
 
-class MCStack;
 
 class MCApplication : public TVirtualMCApplication
 {
   public:
-    explicit MCApplication(std::string geoFileName         = "geo.root",
-                           std::string outFileName         = "out.root",
-                           std::string sensitiveVolumeName = "SV");
+    explicit MCApplication(std::string geoFileName                 = "geo.root",
+                           std::string outFileName                 = "out.root",
+                           std::function<void(MCStack*)> generator = [](MCStack* stack) {
+                               stack->PushBasicPrimary(22, TLorentzVector(5.e-3, 0., 0., 5.e-3));
+                           });
     ~MCApplication() override;
 
     static inline MCApplication* Instance()
@@ -41,8 +45,9 @@ class MCApplication : public TVirtualMCApplication
   private:
     MCStack* fStack;
     SensitiveDetector fSensitiveDetector;
-    std::string fGeoFileName;
-    std::string fOutFileName;
+    const std::string fGeoFileName;
+    const std::string fOutFileName;
+    const std::function<void(MCStack*)> fGenerator;
     TH1D fHist;
 
     ClassDefOverride(MCApplication, 1)

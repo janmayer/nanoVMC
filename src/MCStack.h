@@ -1,11 +1,13 @@
 #ifndef TGEOTET_VMCDEMO_MCSTACK_H
 #define TGEOTET_VMCDEMO_MCSTACK_H
 
+#include "TLorentzVector.h"
 #include "TVirtualMCStack.h"
 #include <stack>
 
 class TParticle;
 class TClonesArray;
+
 
 class MCStack : public TVirtualMCStack
 {
@@ -13,6 +15,8 @@ class MCStack : public TVirtualMCStack
     explicit MCStack(Int_t size);
     MCStack();
     ~MCStack() override;
+
+    void PushBasicPrimary(Int_t pdg, const TLorentzVector& mom);
 
     void PushTrack(Int_t toBeDone,
                    Int_t parent,

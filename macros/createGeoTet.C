@@ -1,4 +1,4 @@
-void createGeo()
+void createGeoTet()
 {
     auto geom   = new TGeoManager("World", "IES");
     auto matVac = new TGeoMaterial("Vacuum", 0, 0, 0);
@@ -7,21 +7,24 @@ void createGeo()
     auto matAl = new TGeoMaterial("Al", 26.98, 13, 2.7);
     auto medAl = new TGeoMedium("Al", 1, matAl);
 
+    auto matPb = new TGeoMaterial("Pb", 208, 82, 11.34);
+    auto medPb = new TGeoMedium("Pb", 2, matPb);
+
     auto world = geom->MakeBox("World", medVac, 200., 200., 200.);
     world->SetLineColor(kMagenta);
     geom->SetTopVolume(world);
 
-    // auto Sha1 = new TGeoTet({0, 0, 0}, {1, 0, 0}, {0, 2, 0}, {0, 0, 3});
-    auto Sha1 = new TGeoBBox("BOX", 10, 5, 5);
-    auto Vol1 = new TGeoVolume("SV", Sha1, medAl);
-    auto trans = new TGeoTranslation(30, 0, 0);
+    auto Sha1   = new TGeoBBox("BOX", 10, 5, 5);
+    auto Vol1   = new TGeoVolume("SV", Sha1, medAl);
+    auto trans1 = new TGeoTranslation(30, 0, 0);
     Vol1->SetLineColor(kBlue);
-    world->AddNode(Vol1, 0, trans);
+    world->AddNode(Vol1, 0, trans1);
 
-    /*auto Sha2 = new TGeoTet({0, 0, 0}, {-1, 0, 0}, {0, -1, 0}, {0, 0, -1});
-    auto Vol2 = new TGeoVolume("tetrahedron2", Sha2, medVac);
-    Vol2->SetLineColor(kGreen);
-    world->AddNode(Vol2, 0);*/
+    auto Sha3   = new TGeoTet({0, 0, -5}, {-10, 0, -5}, {0, -10, -5}, {0, 0, +5});
+    auto Vol3   = new TGeoVolume("tet", Sha3, medPb);
+    auto trans3 = new TGeoTranslation(15, 2, 3);
+    Vol3->SetLineColor(kRed);
+    world->AddNode(Vol3, 0, trans3);
 
     geom->CloseGeometry();
     geom->SetVisLevel(4);
@@ -32,7 +35,7 @@ void createGeo()
     v->CurrentCamera().RotateRad(0, 0.1);
     v->SetStyle(TGLRnrCtx::kOutline);
     v->RequestDraw();
-    v->SavePicture("geo.png");
+    v->SavePicture("geo-tet.png");
 
-    geom->Export("geo.root");
+    geom->Export("geo-tet.root");
 }

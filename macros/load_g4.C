@@ -180,6 +180,6 @@ void load_g4()
     g4libs();
 
     // Load this example library
-    gSystem->AddDynamicPath("../build/");
-    gSystem->Load("libTGeoTet_VMCDemo");
+    /*gSystem->AddDynamicPath("../build/");
+    gSystem->Load("libTGeoTet_VMCDemo");*/
 }

@@ -161,3 +161,26 @@ void MCStack::Reset()
     fNPrimary     = 0;
     fParticles->Clear();
 }
+
+void MCStack::PushBasicPrimary(Int_t pdg, const TLorentzVector& mom)
+{
+    // Track ID (filled by stack) (Nobody cares!)
+    Int_t ntr;
+
+    // Option: to be tracked
+    const Int_t toBeDone = 1;
+
+    // Polarization
+    const Double_t polx = 0.;
+    const Double_t poly = 0.;
+    const Double_t polz = 0.;
+
+    // Position
+    const Double_t vx  = 0.;
+    const Double_t vy  = 0.;
+    const Double_t vz  = 0.;
+    const Double_t tof = 0.;
+
+    // Add particle to stack
+    PushTrack(toBeDone, -1, pdg, mom.Px(), mom.Py(), mom.Pz(), mom.E(), vx, vy, vz, tof, polx, poly, polz, kPPrimary, ntr, 1., 0);
+}

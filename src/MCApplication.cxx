@@ -8,11 +8,12 @@
 #include <iostream>
 
 
-MCApplication::MCApplication(std::string geoFileName, std::string outFileName, std::string sensitiveVolumeName)
+MCApplication::MCApplication(std::string geoFileName, std::string outFileName, std::function<void(MCStack*)> generator)
     : fStack(new MCStack(100))
-    , fSensitiveDetector(std::move(sensitiveVolumeName))
+    , fSensitiveDetector("SV")
     , fGeoFileName(std::move(geoFileName))
     , fOutFileName(std::move(outFileName))
+    , fGenerator(std::move(generator))
     , fHist("hist", "hist", 10000, 0, 10000)
 {
 }
@@ -48,7 +49,6 @@ void MCApplication::RunMC(Int_t nofEvents)
     FinishRun();
 }
 
-
 void MCApplication::FinishRun()
 {
     std::cout << "MCApplication::FinishRun" << std::endl;
@@ -58,7 +58,6 @@ void MCApplication::FinishRun()
     tfile.Write();
     tfile.Close();
 }
-
 
 TVirtualMCApplication* MCApplication::CloneForWorker() const
 {
@@ -88,38 +87,7 @@ void MCApplication::InitGeometry()
 void MCApplication::GeneratePrimaries()
 {
     // std::cout << "MCApplication::GeneratePrimaries" << std::endl;
-
-    /// Fill the user stack (derived from TVirtualMCStack) with primary particles.
-
-    // Track ID (filled by stack)
-    Int_t ntr;
-
-    // Option: to be tracked
-    Int_t toBeDone = 1;
-
-    // Gamma
-    Int_t pdg = 22;
-
-    // Polarization
-    Double_t polx = 0.;
-    Double_t poly = 0.;
-    Double_t polz = 0.;
-
-    // Position
-    Double_t vx  = 0.;
-    Double_t vy  = 0.;
-    Double_t vz  = 0.;
-    Double_t tof = 0.;
-
-    // Momentum
-    Double_t px, py, pz, e;
-    px = 5.e-3;
-    py = 0.;
-    pz = 0.;
-    e  = 5.e-3; // 5 MeV
-
-    // Add particle to stack
-    fStack->PushTrack(toBeDone, -1, pdg, px, py, pz, e, vx, vy, vz, tof, polx, poly, polz, kPPrimary, ntr, 1., 0);
+    fGenerator(fStack);
 }
 
 void MCApplication::BeginEvent()
